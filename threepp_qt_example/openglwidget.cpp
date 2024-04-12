@@ -58,7 +58,8 @@ void openglwidget::initializeGL()
     m_camera = threepp::PerspectiveCamera::create(75, float(width()) / float(height()), 0.1f, 100.0f);
 
     m_scene->background = threepp::Color::aliceblue;
-    m_camera->position.z = 5;
+    m_camera->position.set(-5, 5, 5);
+    m_camera->lookAt(0, 0, 0);
     auto box = createBox();
     m_scene->add(box);
 
