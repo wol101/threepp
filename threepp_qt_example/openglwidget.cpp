@@ -52,7 +52,8 @@ openglwidget::openglwidget(QWidget *parent)
 
 void openglwidget::initializeGL()
 {
-    m_renderer = std::make_unique<threepp::GLRenderer>(threepp::WindowSize(width(), height()));
+    // initialising the renderer here can fail because there may be no framebuffer at this point
+    // m_renderer = std::make_unique<threepp::GLRenderer>(threepp::WindowSize(devicePixelRatio() * width(), devicePixelRatio() * height()));
 
     m_scene = threepp::Scene::create();
     m_camera = threepp::PerspectiveCamera::create(75, float(width()) / float(height()), 0.1f, 100.0f);
@@ -74,14 +75,19 @@ void openglwidget::initializeGL()
 
 void openglwidget::paintGL()
 {
+    // need to initialise the renderer here because it needs a valid framebuffer
+    if (!m_renderer) { m_renderer = std::make_unique<threepp::GLRenderer>(threepp::WindowSize(devicePixelRatio() * width(), devicePixelRatio() * height())); }
     m_renderer->render(*m_scene, *m_camera);
 }
 
 void openglwidget::resizeGL(int width, int height)
 {
-    threepp::WindowSize windowSize(width, height);
+    threepp::WindowSize windowSize(devicePixelRatio() * width, devicePixelRatio() * height);
     m_camera->aspect = windowSize.aspect();
     m_camera->updateProjectionMatrix();
-    m_renderer->setSize(windowSize);
+    makeCurrent();
+    if (m_renderer) { m_renderer->setSize(windowSize); } // this command needs a current OpenGL context and a valid renderer
+    doneCurrent();
 }
+
 
